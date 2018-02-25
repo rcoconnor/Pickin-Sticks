@@ -15,16 +15,19 @@ black = (0, 0, 0)
 white = (255, 255, 255)
 green = (0, 205, 0)
 
-pygame.display.set_caption("Pickin Sticks")
 screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("Pickin Sticks")
+
 
 comic_sans = pygame.font.SysFont('Comic Sans MS', 30)
 smaller_font = pygame.font.SysFont('Comic Sans MS', 15)
+larger_font = pygame.font.SysFont('Comic Sans MS', 50)
 
 up = (0, -character_size)
 down = (0, character_size)
 left = (-character_size, 0)
 right = (character_size, 0)
+
 
 def load_image(name, colorkey=None): 
 	try: 
@@ -42,6 +45,7 @@ def load_image(name, colorkey=None):
 
 
 class Stick(pygame.sprite.Sprite): 
+
 	def __init__(self): 
 		pygame.sprite.Sprite.__init__(self)
 		self.image, self.rect = load_image("banana2.png", -1)
@@ -76,7 +80,9 @@ class Stick(pygame.sprite.Sprite):
 		if self.rect.right > 550: 
 			self.move()
 
+
 class Player(pygame.sprite.Sprite): 
+
 	def __init__(self): 
 		#call sprite initializer
 		pygame.sprite.Sprite.__init__(self) 
@@ -113,24 +119,61 @@ class Player(pygame.sprite.Sprite):
 		self.rect = newpos
 
 
-def message_to_screen(msg, color): 
-	screen_text = comic_sans.render(msg, True, (color))
-	screen.blit(screen_text, [250, 250])
+def message_to_screen(msg, color, y_dispacement = 0, size = "small"): 
+	if size == "small": 
+		screen_text = smaller_font.render(msg, True, color)
+	if size == "medium": 
+		screen_text = comic_sans.render(msg, True, color)
+	if size == "large": 
+		screen_text = larger_font.render(msg, True, color)
 
-def game_over(score): 
+	text_rect = screen_text.get_rect()
+	text_rect.center = 	(screen_width / 2), (screen_height / 2) + y_dispacement
+	screen.blit(screen_text, text_rect)
+
+def display_game_over_msg(score): 
 
 	score_string = "Score: " + str(score)
 	game_over_str = "Game Over"
 	play_again_string = "Press Space to play again"
+	quit_string = "Or Q to quit"
 
 
-	game_over_msg = comic_sans.render(game_over_str, False, (0, 0, 0))
-	score_msg = comic_sans.render(score_string, False, (0, 0, 0))
-	play_again_msg = smaller_font.render(play_again_string, False, (0, 0, 0))
+	game_over_msg = comic_sans.render(game_over_str, False, black)
+	score_msg = comic_sans.render(score_string, False, black)
+	play_again_msg = smaller_font.render(play_again_string, False, black)
+	quit_msg = smaller_font.render(quit_string, False, black)
 
 	screen.blit(game_over_msg, (200, 225))
 	screen.blit(score_msg, (217, 300)) 
 	screen.blit(play_again_msg, (200, 375))
+	screen.blit(quit_msg, (230, 400))
+
+def create_menu(): 
+	
+	message_to_screen("Pickin' Sticks", black, y_dispacement = -100, size = "large")
+	message_to_screen("Press Space to Play", black, size = "medium")
+
+
+
+def game_intro(user_screen): 
+
+	intro = True
+	pygame.display.update()
+
+	while intro: 
+		user_screen.fill(white)
+		create_menu()
+		pygame.display.update()
+
+		for event in pygame.event.get(): 
+			if event.type == pygame.QUIT: 
+				intro = False
+				pygame.quit()
+				quit()
+			if event.type == pygame.KEYDOWN: 
+				if event.key == pygame.K_SPACE: 
+					intro = False
 
 
 def main(): 
@@ -158,16 +201,17 @@ def main():
 
 		while is_game_over == True: 
 			screen.fill(green)
-			game_over(player.score)
+			display_game_over_msg(player.score)
 			pygame.display.update()
 
 
 			for event in pygame.event.get():
 				if event.type == pygame.KEYDOWN: 
 					if event.key == pygame.K_SPACE: 
-						is_game_over = False 
-						counter = 10
-						player.score = 0
+						main()
+					if event.key == pygame.K_q: 
+						game_exit = True
+						is_game_over = False
 				if event.type == pygame.QUIT: 
 					game_exit = True
 					is_game_over = False
@@ -217,7 +261,7 @@ def main():
 		score_string = "Score: " + str(player.score)
 		time_string = str(counter)
 
-		textsurface = comic_sans.render(score_string, False, (0, 0, 0))
+		score_surface = comic_sans.render(score_string, False, (0, 0, 0))
 		time_surface = comic_sans.render(time_string, False, (0, 0, 0))
 		
 
@@ -225,7 +269,7 @@ def main():
 		screen.blit(background, (0, 0))
 
 		#if is_game_over == False: 
-		screen.blit(textsurface, (0, 0))
+		screen.blit(score_surface, (0, 0))
 		screen.blit(time_surface, (550, 0))
 		allsprites.draw(screen)
 
@@ -236,10 +280,7 @@ def main():
 
 
 
-
+game_intro(screen)
 main()
-#screen = pygame.display.set_mode((600, 600))
-#game_over(screen, 5)
-
-
+	
 
